@@ -16,7 +16,7 @@ jobs:
       - name: Fetch BNB Price
         run: |
           # 1. Рандомна затримка (до 20 хвилин)
-          sleep $((RANDOM % 1200))
+          sleep $((RANDOM % 1000))
           
           TIMESTAMP=$(date "+%Y-%m-%d %H:%M")
 
@@ -43,7 +43,7 @@ jobs:
           echo "$(tail -n 48 $FILE_NAME)" > $FILE_NAME
 
           # 6. Пуш
-          git config --local user.email "action@github.com"
+          git config --local user.email "marinafi582@gmail.com"
           git config --local user.name "GitHub Action Bot"
           git add $FILE_NAME
           git commit -m "$COMMIT_MSG"
