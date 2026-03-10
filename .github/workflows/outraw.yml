@@ -1,0 +1,50 @@
+name: Monitor Bot
+
+on:
+  schedule:
+    # Запуск о 25-й хвилині кожні 4 години (наприклад: 00:25, 04:25...)
+    - cron: '35 */5 * * *'
+  workflow_dispatch:
+
+jobs:
+  make-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Fetch BNB Price
+        run: |
+          # 1. Рандомна затримка (до 20 хвилин)
+          sleep $((RANDOM % 1200))
+          
+          TIMESTAMP=$(date "+%Y-%m-%d %H:%M")
+
+          # 2. Отримуємо ціну BNB (binancecoin)
+          RESPONSE=$(curl -s --max-time 15 "https://api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=usd")
+          BNB=$(echo $RESPONSE | jq -r '.binancecoin.usd // empty')
+
+          # 3. Назва файлу (змініть для кожного акаунта)
+          FILE_NAME="output_v2.raw"
+
+          # 4. Логіка запису
+          if [ -z "$BNB" ] || [ "$BNB" == "null" ]; then
+            # План Б: системне повідомлення
+            LOG_ENTRY="[$TIMESTAMP] Signal: standing by"
+            COMMIT_MSG="sys: maintenance check $TIMESTAMP [skip ci]"
+          else
+            # План А: ціна монети
+            LOG_ENTRY="[$TIMESTAMP] BNB Smart Chain Index: \$$BNB USD"
+            COMMIT_MSG="bnb: update feed $TIMESTAMP [skip ci]"
+          fi
+
+          # 5. Оновлення файлу та збереження історії (останні 45 рядків)
+          echo "$LOG_ENTRY" >> $FILE_NAME
+          echo "$(tail -n 48 $FILE_NAME)" > $FILE_NAME
+
+          # 6. Пуш
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+          git add $FILE_NAME
+          git commit -m "$COMMIT_MSG"
+          git push
