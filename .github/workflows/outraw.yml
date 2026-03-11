@@ -3,7 +3,7 @@ name: Monitor Bot
 on:
   schedule:
     # Запуск о 25-й хвилині кожні 4 години (наприклад: 00:25, 04:25...)
-    - cron: '35 */5 * * *'
+    - cron: '35 */7 * * *'
   workflow_dispatch:
 
 jobs:
